@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
       <header className="p-4 border-b mb-6 flex justify-between items-center max-w-4xl mx-auto">
-        <h1 className="text-lg font-bold">🎓 Maru Attendance</h1>
+        <h1 className="text-lg font-bold">🏸 Baginners Attendance</h1>
 
         <div className="flex items-center gap-2">
           {!isHome && (

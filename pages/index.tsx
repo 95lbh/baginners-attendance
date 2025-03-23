@@ -46,12 +46,9 @@ export default function AttendancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
   const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("admin") === "true") {
-      setIsAdmin(true);
-    }
-  }, []);
+  const [notice, setNotice] = useState("");
+  const [editingNotice, setEditingNotice] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   const today = getToday();
 
@@ -99,8 +96,37 @@ export default function AttendancePage() {
       setLoading(false);
     };
 
+    const fetchNotice = async () => {
+      const noticeDoc = await getDoc(doc(db, "notices", "main"));
+      if (noticeDoc.exists()) {
+        setNotice(noticeDoc.data().text || "");
+        setEditingNotice(noticeDoc.data().text || "");
+      }
+    };
+
     fetchData();
+    fetchNotice();
+
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("admin") === "true"
+    ) {
+      setIsAdmin(true);
+    }
   }, [today]);
+
+  const saveNotice = async () => {
+    try {
+      await setDoc(doc(db, "notices", "main"), {
+        text: editingNotice,
+      });
+      setNotice(editingNotice);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("공지 저장 오류:", error);
+      alert("공지사항 저장 중 오류가 발생했습니다.");
+    }
+  };
 
   const handleAttendance = async (userId: string) => {
     setSubmittingId(userId);
@@ -114,6 +140,7 @@ export default function AttendancePage() {
     } else {
       await setDoc(attendanceRef, {
         users: [userId],
+        paid: [],
       });
     }
 
@@ -205,9 +232,47 @@ export default function AttendancePage() {
       </div>
 
       <div className="bg-yellow-100 text-left font-bold text-gray-800 p-3 rounded mb-6 whitespace-pre-line shadow">
-        ❤ 마루 스포츠 출석부입니당{"\n"}
-        🧡 셔틀콕 제출 & 입장료 입금 후 게임 하기{"\n"}
-        💛 국민은행 415602 96 116296 (송호영)
+        {isAdmin && isEditing ? (
+          <>
+            <textarea
+              value={editingNotice}
+              onChange={(e) => setEditingNotice(e.target.value)}
+              className="w-full p-2 rounded border border-gray-300 text-sm text-black"
+              rows={5}
+            />
+            <div className="flex justify-end mt-2 space-x-2">
+              <button
+                onClick={saveNotice}
+                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                저장
+              </button>
+              <button
+                onClick={() => {
+                  setEditingNotice(notice);
+                  setIsEditing(false);
+                }}
+                className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
+              >
+                취소
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {notice}
+            {isAdmin && (
+              <div className="text-right mt-2">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  ✏️ 수정
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <h3 className="font-semibold mb-2">
@@ -326,7 +391,7 @@ export default function AttendancePage() {
         </>
       )}
 
-<footer className="mt-10 pt-6 border-t text-center space-x-4">
+      <footer className="mt-10 pt-6 border-t text-center space-x-4">
         <button
           onClick={() => (window.location.href = "/today")}
           className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"

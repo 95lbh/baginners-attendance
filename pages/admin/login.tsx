@@ -7,7 +7,7 @@ export default function AdminLogin() {
 
   const handleLogin = () => {
     // 간단한 비밀번호 체크 (임시)
-    if (password === 'maru1234') {
+    if (password === 'admin1234') {
       localStorage.setItem('admin', 'true');
       alert('✅ 관리자 로그인 성공!');
       router.push('/');
